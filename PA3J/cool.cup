@@ -77,6 +77,7 @@ nonterminal object object;
 nonterminal string_const string;
 nonterminal int_const int;
 nonterminal Expressions block_part;
+nonterminal let let_right;
 
 /* Precedence declarations go here. */
 
@@ -158,7 +159,7 @@ expr
     | WHILE expr:e1 LOOP expr:e2 POOL
         {: RESULT = new loop(curr_lineno(), e1, e2); :}
     | LBRACE block_part:b RBRACE {: RESULT = new block(curr_lineno(), b); :}
-/* LET */
+    | LET let_right:e {: RESULT = e; :}
 /* CASE */
     | NEW TYPEID:t {: RESULT = new new_(curr_lineno(), t); :}
     | ISVOID expr:e {: RESULT = new isvoid(curr_lineno(), e); :}
@@ -176,6 +177,18 @@ expr
     | int:i {: RESULT = i; :}
     | string:s {: RESULT = s; :}
     | BOOL_CONST:b {: RESULT = new bool_const(curr_lineno(), b); :}
+    ;
+
+let_right
+    ::= 
+    OBJECTID:o COLON TYPEID:t ASSIGN expr:e COMMA let_right:l
+        {: RESULT = new let(curr_lineno(), o, t, e, l); :}
+    | OBJECTID:o COLON TYPEID:t COMMA let_right:l
+        {: RESULT = new let(curr_lineno(), o, t, new no_expr(curr_lineno()), l); :}
+    | OBJECTID:o COLON TYPEID:t ASSIGN expr:e IN expr:l
+        {: RESULT = new let(curr_lineno(), o, t, e, l); :}
+    | OBJECTID:o COLON TYPEID:t IN expr:l
+        {: RESULT = new let(curr_lineno(), o, t, new no_expr(curr_lineno()), l); :}
     ;
 
 object
