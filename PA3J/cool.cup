@@ -130,7 +130,7 @@ feature
     | OBJECTID:o COLON TYPEID:t SEMI
         {: RESULT = new attr(curr_lineno(), o, t, new no_expr(curr_lineno()));
         :}
-    | OBJECTID:o COLON TYPEID:t DARROW expr:e SEMI
+    | OBJECTID:o COLON TYPEID:t ASSIGN expr:e SEMI
         {: RESULT = new attr(curr_lineno(), o, t, e); :}
     ;
     
