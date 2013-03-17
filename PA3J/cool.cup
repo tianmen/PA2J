@@ -78,6 +78,7 @@ nonterminal string_const string;
 nonterminal int_const int;
 nonterminal Expressions block_part;
 nonterminal let let_right;
+nonterminal Cases case_list;
 
 /* Precedence declarations go here. */
 
@@ -160,7 +161,7 @@ expr
         {: RESULT = new loop(curr_lineno(), e1, e2); :}
     | LBRACE block_part:b RBRACE {: RESULT = new block(curr_lineno(), b); :}
     | LET let_right:e {: RESULT = e; :}
-/* CASE */
+    | CASE expr:e OF case_list:cl ESAC {: RESULT = new typcase(curr_lineno(), e, cl); :}
     | NEW TYPEID:t {: RESULT = new new_(curr_lineno(), t); :}
     | ISVOID expr:e {: RESULT = new isvoid(curr_lineno(), e); :}
     | expr:e1 PLUS expr:e2 {: RESULT = new plus(curr_lineno(), e1, e2); :}
@@ -189,6 +190,14 @@ let_right
         {: RESULT = new let(curr_lineno(), o, t, e, l); :}
     | OBJECTID:o COLON TYPEID:t IN expr:l
         {: RESULT = new let(curr_lineno(), o, t, new no_expr(curr_lineno()), l); :}
+    ;
+
+case_list
+    ::=
+    OBJECTID:o COLON TYPEID:t DARROW expr:e SEMI
+        {: RESULT = new Cases(curr_lineno()).appendElement(new branch(curr_lineno(), o, t, e)); :}
+    | case_list:cl OBJECTID:o COLON TYPEID:t DARROW expr:e SEMI
+        {: RESULT = cl.appendElement(new branch(curr_lineno(), o, t, e)); :}
     ;
 
 object
