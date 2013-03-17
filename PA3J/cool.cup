@@ -153,8 +153,10 @@ expr
         {: object self = new object(curr_lineno(), AbstractTable.idtable.addString("self"));
             self.set_type(AbstractTable.idtable.addString("SELF_TYPE"));
             RESULT = new dispatch(curr_lineno(), self, o, el); :}
-    | IF expr THEN expr ELSE expr FI
-    | WHILE expr LOOP expr POOL
+    | IF expr:e1 THEN expr:e2 ELSE expr:e3 FI
+        {: RESULT = new cond(curr_lineno(), e1, e2, e3); :}
+    | WHILE expr:e1 LOOP expr:e2 POOL
+        {: RESULT = new loop(curr_lineno(), e1, e2); :}
     | LBRACE block_part:b RBRACE {: RESULT = new block(curr_lineno(), b); :}
 /* LET */
 /* CASE */
