@@ -76,6 +76,7 @@ nonterminal Expression expr;
 nonterminal object object;
 nonterminal string_const string;
 nonterminal int_const int;
+nonterminal Expressions block_part;
 
 /* Precedence declarations go here. */
 
@@ -114,10 +115,10 @@ feature_list
 feature
     ::= OBJECTID:o LPAREN formal_list:f RPAREN COLON TYPEID:t LBRACE expr:e RBRACE SEMI 
         {: RESULT = new method(curr_lineno(), o, f, t, e); :}
-    | OBJECTID:o COLON TYPEID:t
+    | OBJECTID:o COLON TYPEID:t SEMI
         {: RESULT = new attr(curr_lineno(), o, t, new no_expr(curr_lineno())); // TODO maybe need initialize
         :}
-    | OBJECTID:o COLON TYPEID:t DARROW expr:e
+    | OBJECTID:o COLON TYPEID:t DARROW expr:e SEMI
         {: RESULT = new attr(curr_lineno(), o, t, e); :}
     ;
     
@@ -142,17 +143,37 @@ expr_list
     ;
 
 expr
-    ::= 
-    OBJECTID:o LPAREN expr_list:el RPAREN
-    {: 
-        object self = new object(curr_lineno(), AbstractTable.idtable.addString("self"));
-        self.set_type(AbstractTable.idtable.addString("SELF_TYPE"));
-        RESULT = new dispatch(curr_lineno(), self, o, el); :}
+    ::= OBJECTID:o DARROW expr:e
+        {: RESULT = new assign(curr_lineno(), o, e); :}
     | expr:e DOT OBJECTID:o LPAREN expr_list:el RPAREN
-    {: RESULT = new dispatch(curr_lineno(), e, o, el); :}
-    | string:s {: RESULT = s; :}
-    | int:i {: RESULT = i; :}
+        {: RESULT = new dispatch(curr_lineno(), e, o, el); :}
+    | expr:e AT TYPEID:t DOT OBJECTID:o LPAREN expr_list:el RPAREN
+        {: RESULT = new static_dispatch(curr_lineno(), e, t, o, el); :}
+    | OBJECTID:o LPAREN expr_list:el RPAREN
+        {: object self = new object(curr_lineno(), AbstractTable.idtable.addString("self"));
+            self.set_type(AbstractTable.idtable.addString("SELF_TYPE"));
+            RESULT = new dispatch(curr_lineno(), self, o, el); :}
+    | IF expr THEN expr ELSE expr FI
+    | WHILE expr LOOP expr POOL
+    | LBRACE block_part:b RBRACE {: RESULT = new block(curr_lineno(), b); :}
+/* LET */
+/* CASE */
+    | NEW TYPEID:t {: RESULT = new new_(curr_lineno(), t); :}
+    | ISVOID expr:e {: RESULT = new isvoid(curr_lineno(), e); :}
+    | expr:e1 PLUS expr:e2 {: RESULT = new plus(curr_lineno(), e1, e2); :}
+    | expr:e1 MINUS expr:e2 {: RESULT = new sub(curr_lineno(), e1, e2); :}
+    | expr:e1 MULT expr:e2 {: RESULT = new mul(curr_lineno(), e1, e2); :}
+    | expr:e1 DIV expr:e2 {: RESULT = new divide(curr_lineno(), e1, e2); :}
+    | NEG expr:e {: RESULT = new neg(curr_lineno(), e); :}
+    | expr:e1 LT expr:e2 {: RESULT = new lt(curr_lineno(), e1, e2); :}
+    | expr:e1 LE expr:e2 {: RESULT = new leq(curr_lineno(), e1, e2); :}
+    | expr:e1 EQ expr:e2 {: RESULT = new eq(curr_lineno(), e1, e2); :}
+    | NOT expr:e {: RESULT = new comp(curr_lineno(), e); :}
+    | LPAREN expr:e RPAREN  {: RESULT = e; :}
     | object:o {: RESULT = o; :}
+    | int:i {: RESULT = i; :}
+    | string:s {: RESULT = s; :}
+    | BOOL_CONST:b {: RESULT = new bool_const(curr_lineno(), b); :}
     ;
 
 object
@@ -168,4 +189,9 @@ string
 int
     ::= INT_CONST:i
     {: RESULT = new int_const(curr_lineno(), i); :}
+    ;
+
+block_part
+    ::= expr:e SEMI {: RESULT = new Expressions (curr_lineno()).appendElement(e); :}
+    | block_part:b expr:e SEMI {: RESULT = b.appendElement(e); :}
     ;
