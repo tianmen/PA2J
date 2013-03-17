@@ -84,7 +84,7 @@ nonterminal Cases case_list;
 
 precedence right ASSIGN;
 precedence left NOT;
-precedence LE, LT, EQ;
+precedence left LE, LT, EQ;
 precedence left PLUS, MINUS;
 precedence left MULT, DIV;
 precedence left ISVOID;
@@ -137,7 +137,7 @@ feature
 formal_list
     ::= formal:f
         {: RESULT = new Formals(curr_lineno()).appendElement(f); :}
-    | formal_list:fl formal:f
+    | formal_list:fl COMMA formal:f
         {: RESULT = fl.appendElement(f); :}
     |   {: RESULT = new Formals(curr_lineno()); :}
     ;
