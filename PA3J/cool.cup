@@ -163,7 +163,6 @@ expr
         {: RESULT = new static_dispatch(curr_lineno(), e, t, o, el); :}
     | OBJECTID:o LPAREN expr_list:el RPAREN
         {: object self = new object(curr_lineno(), AbstractTable.idtable.addString("self"));
-            self.set_type(AbstractTable.idtable.addString("SELF_TYPE"));
             RESULT = new dispatch(curr_lineno(), self, o, el); :}
     | IF expr:e1 THEN expr:e2 ELSE expr:e3 FI
         {: RESULT = new cond(curr_lineno(), e1, e2, e3); :}
