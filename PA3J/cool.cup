@@ -84,7 +84,7 @@ nonterminal Cases case_list;
 
 precedence right ASSIGN;
 precedence left NOT;
-precedence left LE, LT, EQ;
+precedence nonassoc LE, LT, EQ;
 precedence left PLUS, MINUS;
 precedence left MULT, DIV;
 precedence left ISVOID;
@@ -114,6 +114,7 @@ class
 				   f, curr_filename()); :}
 	| CLASS TYPEID:n INHERITS TYPEID:p LBRACE feature_list:f RBRACE SEMI
 	    {: RESULT = new class_c(curr_lineno(), n, p, f, curr_filename()); :}
+    | error
 	;
 
 feature_list
@@ -132,6 +133,7 @@ feature
         :}
     | OBJECTID:o COLON TYPEID:t ASSIGN expr:e SEMI
         {: RESULT = new attr(curr_lineno(), o, t, e); :}
+    | error SEMI
     ;
     
 formal_list
@@ -187,7 +189,6 @@ expr
     | int:i {: RESULT = i; :}
     | string:s {: RESULT = s; :}
     | BOOL_CONST:b {: RESULT = new bool_const(curr_lineno(), b); :}
-    | error
     ;
 
 let_right
@@ -200,6 +201,7 @@ let_right
         {: RESULT = new let(curr_lineno(), o, t, e, l); :}
     | OBJECTID:o COLON TYPEID:t IN expr:l
         {: RESULT = new let(curr_lineno(), o, t, new no_expr(curr_lineno()), l); :}
+    | error COMMA let_right
     ;
 
 case_list
@@ -226,6 +228,9 @@ int
     ;
 
 block_part
-    ::= expr:e SEMI {: RESULT = new Expressions (curr_lineno()).appendElement(e); :}
+    ::= expr:e SEMI {: RESULT = new Expressions(curr_lineno()).appendElement(e); :}
+    | error SEMI {: RESULT = new Expressions(curr_lineno()); :}
     | block_part:b expr:e SEMI {: RESULT = b.appendElement(e); :}
+    | block_part:b error SEMI
+
     ;
