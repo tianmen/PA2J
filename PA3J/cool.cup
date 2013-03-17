@@ -155,7 +155,7 @@ expr_list
     ;
 
 expr
-    ::= OBJECTID:o DARROW expr:e
+    ::= OBJECTID:o ASSIGN expr:e
         {: RESULT = new assign(curr_lineno(), o, e); :}
     | expr:e DOT OBJECTID:o LPAREN expr_list:el RPAREN
         {: RESULT = new dispatch(curr_lineno(), e, o, el); :}
