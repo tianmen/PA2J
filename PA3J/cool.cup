@@ -82,6 +82,16 @@ nonterminal Cases case_list;
 
 /* Precedence declarations go here. */
 
+precedence right ASSIGN;
+precedence left NOT;
+precedence LE, LT, EQ;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV;
+precedence left ISVOID;
+precedence left NEG;
+precedence left AT;
+precedence left DOT;
+
 program	
 	::= class_list:cl
 	    {: RESULT = new programc(curr_lineno(), cl); :}
@@ -118,7 +128,7 @@ feature
     ::= OBJECTID:o LPAREN formal_list:f RPAREN COLON TYPEID:t LBRACE expr:e RBRACE SEMI 
         {: RESULT = new method(curr_lineno(), o, f, t, e); :}
     | OBJECTID:o COLON TYPEID:t SEMI
-        {: RESULT = new attr(curr_lineno(), o, t, new no_expr(curr_lineno())); // TODO maybe need initialize
+        {: RESULT = new attr(curr_lineno(), o, t, new no_expr(curr_lineno()));
         :}
     | OBJECTID:o COLON TYPEID:t DARROW expr:e SEMI
         {: RESULT = new attr(curr_lineno(), o, t, e); :}
