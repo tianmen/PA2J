@@ -187,6 +187,7 @@ expr
     | int:i {: RESULT = i; :}
     | string:s {: RESULT = s; :}
     | BOOL_CONST:b {: RESULT = new bool_const(curr_lineno(), b); :}
+    | error
     ;
 
 let_right
