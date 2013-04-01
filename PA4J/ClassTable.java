@@ -208,14 +208,14 @@ class ClassTable {
       s = new HashSet<String>();
       while (true) {
         AbstractSymbol p = inheritanceTable.get(c.getString());
+        if (p == null) {
+          break;
+        } 
         boolean existed = !s.add(p.getString());
         if (existed) {
           semantError(cc).println("inheritance is not a tree");
           return;
         }
-        if (p == null) {
-          break;
-        } 
         c = p;
       }
     }
@@ -266,16 +266,19 @@ class ClassTable {
     return semantErrors != 0;
   }
 
-  public boolean classIsSubclassOf(class_c child, class_c parent) {
-    if (child.getName().equals(parent.getName())) {
+  public boolean classIsSubclassOf(AbstractSymbol child, AbstractSymbol parent) {
+    if (child == null || parent == null) {
+      return false;
+    }
+    if (child.equals(parent)) {
       return true;
     }
-    AbstractSymbol c = child.getName();
+    AbstractSymbol c = child;
     while (true) {
       AbstractSymbol p = inheritanceTable.get(c.getString());
       if (p == null) {
         return false;
-      } else if (p.equals(parent.getName())) {
+      } else if (p.equals(parent)) {
         return true;
       }
       c = p;

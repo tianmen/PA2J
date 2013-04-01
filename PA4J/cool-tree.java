@@ -18,7 +18,7 @@ abstract class Program extends TreeNode {
     }
     public abstract void dump_with_types(PrintStream out, int n);
     public abstract void semant();
-    public abstract void checkType(SymbolTable o, ClassTable m, Class_ c);
+    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -29,7 +29,7 @@ abstract class Class_ extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void checkType(SymbolTable o, ClassTable m, Class_ c);
+    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -67,7 +67,7 @@ abstract class Feature extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void checkType(SymbolTable o, ClassTable m, Class_ c);
+    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -105,6 +105,7 @@ abstract class Formal extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
+    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -151,7 +152,7 @@ abstract class Expression extends TreeNode {
         else
         { out.println(Utilities.pad(n) + ": _no_type"); }
     }
-    public void checkType(SymbolTable o, ClassTable m, Class_ c) {
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
     }
 
 }
@@ -280,11 +281,17 @@ class programc extends Program {
 
         checkType(o, classTable, null);
 
+        // TODO uncomment this
+        /*if (classTable.errors()) {
+            System.err.println("Compilation halted due to static semantic errors.");
+            System.exit(1);
+        }*/
     }
-    public void checkType(SymbolTable o, ClassTable m, Class_ c) {
+
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             // sm: changed 'n + 1' to 'n + 2' to match changes elsewhere
-            Class_ cls = ((Class_)e.nextElement());
+            class_c cls = ((class_c)e.nextElement());
             cls.checkType(o, m, cls);
         }
     }
@@ -315,7 +322,7 @@ class class_c extends Class_ {
         features = a3;
         filename = a4;
     }
-    public void checkType(SymbolTable o, ClassTable m, Class_ c) {
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
         for (Enumeration e = features.getElements(); e.hasMoreElements();) {
             Feature f = ((Feature)e.nextElement());
             f.checkType(o, m, c);
@@ -377,7 +384,21 @@ class method extends Feature {
         return_type = a3;
         expr = a4;
     }
-    public void checkType(SymbolTable o, ClassTable m, Class_ c) {
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      o.enterScope();
+      for (Enumeration e = formals.getElements(); e.hasMoreElements();) {
+          Formal f = ((Formal)e.nextElement());
+          f.checkType(o, m, c);
+      }
+      AbstractSymbol t0 = return_type;
+      if (t0.equals(TreeConstants.SELF_TYPE)) {
+        t0 = c.getName();
+      }
+      expr.checkType(o, m, c);
+      if (!m.classIsSubclassOf(expr.get_type(), t0)) {
+        m.semantError().println("method type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
+      }
+      o.exitScope();
     }
     public TreeNode copy() {
         return new method(lineNumber, copy_AbstractSymbol(name), (Formals)formals.copy(), copy_AbstractSymbol(return_type), (Expression)expr.copy());
@@ -389,7 +410,6 @@ class method extends Feature {
         dump_AbstractSymbol(out, n+2, return_type);
         expr.dump(out, n+2);
     }
-
 
     public void dump_with_types(PrintStream out, int n) {
         dump_line(out, n);
@@ -425,7 +445,9 @@ class attr extends Feature {
         type_decl = a2;
         init = a3;
     }
-    public void checkType(SymbolTable o, ClassTable m, Class_ c) {
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      init.checkType(o, m, c);
+      // TODO check
     }
     public TreeNode copy() {
         return new attr(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(type_decl), (Expression)init.copy());
@@ -465,6 +487,10 @@ class formalc extends Formal {
         super(lineNumber);
         name = a1;
         type_decl = a2;
+    }
+
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      o.addId(name, type_decl);
     }
     public TreeNode copy() {
         return new formalc(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(type_decl));
@@ -545,8 +571,9 @@ class assign extends Expression {
         name = a1;
         expr = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, Class_ c) {
-
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      expr.checkType(o, m, c);
+      this.set_type(expr.get_type());
     }
     public TreeNode copy() {
         return new assign(lineNumber, copy_AbstractSymbol(name), (Expression)expr.copy());
@@ -803,6 +830,20 @@ class block extends Expression {
         super(lineNumber);
         body = a1;
     }
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+        o.enterScope();
+        Expression ex = null;
+        for (Enumeration e = body.getElements(); e.hasMoreElements();) {
+            ex = ((Expression)e.nextElement());
+            ex.checkType(o, m, c);
+        }
+        if (ex != null) {
+          this.set_type(ex.get_type());
+        } else {
+          // TODO what now?
+        }
+        o.exitScope();
+    }
     public TreeNode copy() {
         return new block(lineNumber, (Expressions)body.copy());
     }
@@ -846,6 +887,22 @@ class let extends Expression {
         type_decl = a2;
         init = a3;
         body = a4;
+    }
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      o.enterScope();
+      o.addId(identifier, type_decl);
+      AbstractSymbol t0p = type_decl;
+      if (t0p.equals(TreeConstants.SELF_TYPE)) {
+        t0p = c.getName();
+
+      }
+      init.checkType(o, m, c);
+      if (!m.classIsSubclassOf(init.get_type(), type_decl)) {
+        m.semantError().println("bad let");
+      }
+      body.checkType(o, m, c);
+      this.set_type(body.get_type());
+      o.exitScope();
     }
     public TreeNode copy() {
         return new let(lineNumber, copy_AbstractSymbol(identifier), copy_AbstractSymbol(type_decl), (Expression)init.copy(), (Expression)body.copy());
@@ -1218,6 +1275,10 @@ class int_const extends Expression {
         super(lineNumber);
         token = a1;
     }
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      this.set_type(TreeConstants.Int);
+    }
+
     public TreeNode copy() {
         return new int_const(lineNumber, copy_AbstractSymbol(token));
     }
@@ -1251,6 +1312,10 @@ class bool_const extends Expression {
         super(lineNumber);
         val = a1;
     }
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      this.set_type(TreeConstants.Bool);
+    }
+
     public TreeNode copy() {
         return new bool_const(lineNumber, copy_Boolean(val));
     }
@@ -1283,6 +1348,9 @@ class string_const extends Expression {
     public string_const(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
         token = a1;
+    }
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      this.set_type(TreeConstants.Str);
     }
     public TreeNode copy() {
         return new string_const(lineNumber, copy_AbstractSymbol(token));
@@ -1318,6 +1386,9 @@ class new_ extends Expression {
     public new_(int lineNumber, AbstractSymbol a1) {
         super(lineNumber);
         type_name = a1;
+    }
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      this.set_type(type_name);
     }
     public TreeNode copy() {
         return new new_(lineNumber, copy_AbstractSymbol(type_name));
