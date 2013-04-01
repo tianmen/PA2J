@@ -1484,6 +1484,9 @@ class object extends Expression {
         super(lineNumber);
         name = a1;
     }
+    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+      this.set_type(TreeConstants.Object_);
+    }
     public TreeNode copy() {
         return new object(lineNumber, copy_AbstractSymbol(name));
     }
