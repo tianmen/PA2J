@@ -271,15 +271,15 @@ class programc extends Program {
         /* ClassTable constructor may do some semantic analysis */
         ClassTable classTable = new ClassTable(classes);
 
-        /* some semantic analysis code may go here */
-        SymbolTable o = new SymbolTable();
-
-        checkType(o, classTable, null);
-
         if (classTable.errors()) {
             System.err.println("Compilation halted due to static semantic errors.");
             System.exit(1);
         }
+
+        SymbolTable o = new SymbolTable();
+
+        checkType(o, classTable, null);
+
     }
     public void checkType(SymbolTable o, ClassTable m, Class_ c) {
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {

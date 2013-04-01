@@ -1,5 +1,6 @@
 import java.io.PrintStream;
 import java.util.Hashtable;
+import java.util.HashSet;
 import java.util.Enumeration;
 
 /** This class may be used to contain the semantic information such as
@@ -191,11 +192,33 @@ class ClassTable {
 
     /* fill this in */
     installBasicClasses();
+    HashSet<String> s = new HashSet<String>();
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
       inheritanceTable.put(c.getName().getString(), c.getParent());
+      boolean existed = !s.add(c.getName().getString());
+      if (existed) {
+        semantError(c).println("redefined " + c.getName().getString());
+        return;
+      }
     }
-    // TODO check graph is a tree
+    for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+      class_c cc = (class_c)e.nextElement();
+      AbstractSymbol c = cc.getName();
+      s = new HashSet<String>();
+      while (true) {
+        AbstractSymbol p = inheritanceTable.get(c.getString());
+        boolean existed = !s.add(p.getString());
+        if (existed) {
+          semantError(cc).println("inheritance is not a tree");
+          return;
+        }
+        if (p == null) {
+          break;
+        } 
+        c = p;
+      }
+    }
   }
 
   /** Prints line number and file name of the given class.
