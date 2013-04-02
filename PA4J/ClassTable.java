@@ -294,8 +294,8 @@ class ClassTable {
       }
       c = p;
     }
-    int fi = fp.size();
-    int si = sp.size();
+    int fi = fp.size() - 1;
+    int si = sp.size() - 1;
     AbstractSymbol result = null;
     while (fi >= 0 && si >= 0) {
       AbstractSymbol s = sp.get(si);
