@@ -330,7 +330,7 @@ class class_c extends Class_ {
       dump_line(System.err, 0);
     }
     o.enterScope();
-    o.addId(TreeConstants.self, c.getName());
+    o.addId(TreeConstants.self, TreeConstants.SELF_TYPE);
     // get all attr info
     for (Enumeration e = features.getElements(); e.hasMoreElements();) {
       Feature fe = ((Feature)e.nextElement());
