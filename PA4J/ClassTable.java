@@ -1,5 +1,6 @@
 import java.io.PrintStream;
 import java.util.Hashtable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Enumeration;
 
@@ -248,6 +249,11 @@ class ClassTable {
     errorStream.print(filename + ":" + t.getLineNumber() + ": ");
     return semantError();
   }
+  
+  public PrintStream semantError(TreeNode node, String msg) {
+    errorStream.print(node.getLineNumber() + ":" + msg);
+    return semantError();
+  }
 
   /** Increments semantic error count and returns the print stream for
    * error messages.
@@ -264,6 +270,43 @@ class ClassTable {
   /** Returns true if there are any static semantic errors. */
   public boolean errors() {
     return semantErrors != 0;
+  }
+
+  public AbstractSymbol join(AbstractSymbol first, AbstractSymbol second) {
+    ArrayList<AbstractSymbol> fp = new ArrayList<AbstractSymbol>();
+    ArrayList<AbstractSymbol> sp = new ArrayList<AbstractSymbol>();
+    AbstractSymbol c = first;
+    while (true) {
+      fp.add(c);
+      AbstractSymbol p = inheritanceTable.get(c.getString());
+      if (p == null) {
+        break;
+      }
+      c = p;
+    }
+    c = second;
+    while (true) {
+      sp.add(c);
+      AbstractSymbol p = inheritanceTable.get(c.getString());
+      if (p == null) {
+        break;
+      }
+      c = p;
+    }
+    int fi = fp.size();
+    int si = sp.size();
+    AbstractSymbol result = null;
+    while (fi >= 0 && si >= 0) {
+      AbstractSymbol s = sp.get(si);
+      if (fp.get(fi).equals(s)) {
+        result = s;
+      } else {
+        break;
+      }
+      fi--;
+      si--;
+    }
+    return result;
   }
 
   public boolean classIsSubclassOf(AbstractSymbol child, AbstractSymbol parent) {
@@ -283,6 +326,11 @@ class ClassTable {
       }
       c = p;
     }
+  }
+
+  public AbstractSymbol returnType(AbstractSymbol class_, ArrayList<AbstractSymbol> actualTypes) {
+    // TODO
+    return TreeConstants.Object_;
   }
 }
 
