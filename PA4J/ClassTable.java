@@ -250,9 +250,10 @@ class ClassTable {
     return semantError();
   }
   
-  public PrintStream semantError(TreeNode node, String msg) {
-    errorStream.print(node.getLineNumber() + ":" + msg);
-    return semantError();
+  public PrintStream semantError(AbstractSymbol filename, TreeNode t, String msg) {
+    PrintStream s = semantError(filename, t);
+    s.println(msg);
+    return s;
   }
 
   /** Increments semantic error count and returns the print stream for

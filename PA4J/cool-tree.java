@@ -19,7 +19,7 @@ abstract class Program extends TreeNode {
     }
     public abstract void dump_with_types(PrintStream out, int n);
     public abstract void semant();
-    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
+    public abstract void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -30,7 +30,7 @@ abstract class Class_ extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
+    public abstract void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -68,7 +68,7 @@ abstract class Feature extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
+    public abstract void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -106,7 +106,7 @@ abstract class Formal extends TreeNode {
         super(lineNumber);
     }
     public abstract void dump_with_types(PrintStream out, int n);
-    public abstract void checkType(SymbolTable o, ClassTable m, class_c c);
+    public abstract void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c);
 
 }
 
@@ -153,7 +153,7 @@ abstract class Expression extends TreeNode {
         else
         { out.println(Utilities.pad(n) + ": _no_type"); }
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
     }
 
 }
@@ -280,20 +280,20 @@ class programc extends Program {
 
         SymbolTable o = new SymbolTable();
 
-        checkType(o, classTable, null);
+        checkType(null, o, classTable, null);
 
         // TODO uncomment this
-        /*if (classTable.errors()) {
+        if (classTable.errors()) {
             System.err.println("Compilation halted due to static semantic errors.");
             System.exit(1);
-        }*/
+        }
     }
 
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
         for (Enumeration e = classes.getElements(); e.hasMoreElements(); ) {
             // sm: changed 'n + 1' to 'n + 2' to match changes elsewhere
             class_c cls = ((class_c)e.nextElement());
-            cls.checkType(o, m, cls);
+            cls.checkType(f, o, m, cls);
         }
     }
 
@@ -323,10 +323,10 @@ class class_c extends Class_ {
         features = a3;
         filename = a4;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
         for (Enumeration e = features.getElements(); e.hasMoreElements();) {
-            Feature f = ((Feature)e.nextElement());
-            f.checkType(o, m, c);
+            Feature fe = ((Feature)e.nextElement());
+            fe.checkType(filename, o, m, c);
         }
     }
     public TreeNode copy() {
@@ -385,17 +385,17 @@ class method extends Feature {
         return_type = a3;
         expr = a4;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       o.enterScope();
       for (Enumeration e = formals.getElements(); e.hasMoreElements();) {
-          Formal f = ((Formal)e.nextElement());
-          f.checkType(o, m, c);
+          Formal fe = ((Formal)e.nextElement());
+          fe.checkType(f, o, m, c);
       }
       AbstractSymbol t0 = return_type;
       if (t0.equals(TreeConstants.SELF_TYPE)) {
         t0 = c.getName();
       }
-      expr.checkType(o, m, c);
+      expr.checkType(f, o, m, c);
       if (!m.classIsSubclassOf(expr.get_type(), t0)) {
         m.semantError().println("method type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
       }
@@ -422,7 +422,6 @@ class method extends Feature {
         dump_AbstractSymbol(out, n + 2, return_type);
         expr.dump_with_types(out, n + 2);
     }
-
 }
 
 
@@ -446,8 +445,11 @@ class attr extends Feature {
         type_decl = a2;
         init = a3;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
-      init.checkType(o, m, c);
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
+      init.checkType(f, o, m, c);
+        if (name.equals(TreeConstants.self)) {
+          m.semantError(f, this, "attr name can't be self");
+        }
       // TODO check
     }
     public TreeNode copy() {
@@ -490,7 +492,7 @@ class formalc extends Formal {
         type_decl = a2;
     }
 
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       o.addId(name, type_decl);
     }
     public TreeNode copy() {
@@ -534,10 +536,10 @@ class branch extends Case {
         expr = a3;
     }
 
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       o.enterScope();
       o.addId(name, type_decl);
-      expr.checkType(o, m, c);
+      expr.checkType(f, o, m, c);
       // TODO check
       // this.set_type(type_decl);
       o.exitScope();
@@ -581,8 +583,8 @@ class assign extends Expression {
         name = a1;
         expr = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
-      expr.checkType(o, m, c);
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
+      expr.checkType(f, o, m, c);
       this.set_type(expr.get_type());
     }
     public TreeNode copy() {
@@ -629,12 +631,12 @@ class static_dispatch extends Expression {
         name = a3;
         actual = a4;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
-      expr.checkType(o, m, c);
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
+      expr.checkType(f, o, m, c);
       ArrayList<AbstractSymbol> actualTypes = new ArrayList<AbstractSymbol>();
       for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
         Expression ex = ((Expression)e.nextElement());
-        ex.checkType(o, m, c);
+        ex.checkType(f, o, m, c);
         actualTypes.add(ex.get_type());
       }
       // TODO SELF_TYPE
@@ -690,12 +692,12 @@ class dispatch extends Expression {
         name = a2;
         actual = a3;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
-      expr.checkType(o, m, c);
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
+      expr.checkType(f, o, m, c);
       ArrayList<AbstractSymbol> actualTypes = new ArrayList<AbstractSymbol>();
       for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
         Expression ex = ((Expression)e.nextElement());
-        ex.checkType(o, m, c);
+        ex.checkType(f, o, m, c);
         actualTypes.add(ex.get_type());
       }
       // TODO SELF_TYPE
@@ -749,13 +751,13 @@ class cond extends Expression {
         then_exp = a2;
         else_exp = a3;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
-      pred.checkType(o, m, c);
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
+      pred.checkType(f, o, m, c);
       if (!pred.get_type().equals(TreeConstants.Bool)) {
-        m.semantError(this, "if condition is not bool");
+        m.semantError(f, this, "if condition is not bool");
       }
-      then_exp.checkType(o, m, c);
-      else_exp.checkType(o, m, c);
+      then_exp.checkType(f, o, m, c);
+      else_exp.checkType(f, o, m, c);
       this.set_type(m.join(then_exp.get_type(), else_exp.get_type()));
     }
     public TreeNode copy() {
@@ -798,7 +800,7 @@ class loop extends Expression {
         pred = a1;
         body = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Object_);
       // TODO checkType
     }
@@ -840,7 +842,7 @@ class typcase extends Expression {
         expr = a1;
         cases = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       // TODO replace with correct type
       this.set_type(TreeConstants.Object_);
       // TODO checkType
@@ -882,12 +884,12 @@ class block extends Expression {
         super(lineNumber);
         body = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
         o.enterScope();
         Expression ex = null;
         for (Enumeration e = body.getElements(); e.hasMoreElements();) {
             ex = ((Expression)e.nextElement());
-            ex.checkType(o, m, c);
+            ex.checkType(f, o, m, c);
         }
         if (ex != null) {
           this.set_type(ex.get_type());
@@ -940,7 +942,7 @@ class let extends Expression {
         init = a3;
         body = a4;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       o.enterScope();
       o.addId(identifier, type_decl);
       AbstractSymbol t0p = type_decl;
@@ -948,11 +950,11 @@ class let extends Expression {
         t0p = c.getName();
 
       }
-      init.checkType(o, m, c);
+      init.checkType(f, o, m, c);
       if (!m.classIsSubclassOf(init.get_type(), type_decl)) {
         m.semantError().println("bad let");
       }
-      body.checkType(o, m, c);
+      body.checkType(f, o, m, c);
       this.set_type(body.get_type());
       o.exitScope();
     }
@@ -998,7 +1000,7 @@ class plus extends Expression {
         e1 = a1;
         e2 = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Int);
       // TODO checkType
     }
@@ -1040,7 +1042,7 @@ class sub extends Expression {
         e1 = a1;
         e2 = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Int);
       // TODO checkType
     }
@@ -1082,7 +1084,7 @@ class mul extends Expression {
         e1 = a1;
         e2 = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Int);
       // TODO checkType
     }
@@ -1124,7 +1126,7 @@ class divide extends Expression {
         e1 = a1;
         e2 = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Int);
       // TODO checkType
     }
@@ -1164,7 +1166,7 @@ class neg extends Expression {
         super(lineNumber);
         e1 = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Int);
       // TODO checkType
     }
@@ -1204,7 +1206,7 @@ class lt extends Expression {
         e1 = a1;
         e2 = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Bool);
       // TODO checkType
     }
@@ -1246,7 +1248,7 @@ class eq extends Expression {
         e1 = a1;
         e2 = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Bool);
       // TODO checkType
     }
@@ -1288,7 +1290,7 @@ class leq extends Expression {
         e1 = a1;
         e2 = a2;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Bool);
       // TODO checkType
     }
@@ -1327,7 +1329,7 @@ class comp extends Expression {
         super(lineNumber);
         e1 = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Bool);
       // TODO checkType
     }
@@ -1364,7 +1366,7 @@ class int_const extends Expression {
         super(lineNumber);
         token = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Int);
     }
 
@@ -1401,7 +1403,7 @@ class bool_const extends Expression {
         super(lineNumber);
         val = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Bool);
     }
 
@@ -1438,7 +1440,7 @@ class string_const extends Expression {
         super(lineNumber);
         token = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Str);
     }
     public TreeNode copy() {
@@ -1476,7 +1478,7 @@ class new_ extends Expression {
         super(lineNumber);
         type_name = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(type_name);
     }
     public TreeNode copy() {
@@ -1512,7 +1514,7 @@ class isvoid extends Expression {
         super(lineNumber);
         e1 = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Bool);
       // TODO check
     }
@@ -1546,7 +1548,7 @@ class no_expr extends Expression {
     public no_expr(int lineNumber) {
         super(lineNumber);
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.No_type);
     }
     public TreeNode copy() {
@@ -1580,7 +1582,7 @@ class object extends Expression {
         super(lineNumber);
         name = a1;
     }
-    public void checkType(SymbolTable o, ClassTable m, class_c c) {
+    public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
       this.set_type(TreeConstants.Object_);
     }
     public TreeNode copy() {
