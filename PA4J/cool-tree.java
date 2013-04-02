@@ -331,6 +331,14 @@ class class_c extends Class_ {
     }
     o.enterScope();
     o.addId(TreeConstants.self, c.getName());
+    // get all attr info
+    for (Enumeration e = features.getElements(); e.hasMoreElements();) {
+      Feature fe = ((Feature)e.nextElement());
+      if (fe instanceof attr) {
+        attr a = (attr)fe;
+        o.addId(a.name, a.type_decl);
+      }
+    }
     for (Enumeration e = features.getElements(); e.hasMoreElements();) {
       Feature fe = ((Feature)e.nextElement());
       fe.checkType(filename, o, m, c);
@@ -374,9 +382,9 @@ class class_c extends Class_ {
   <p>
   See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class method extends Feature {
-  protected AbstractSymbol name;
-  protected Formals formals;
-  protected AbstractSymbol return_type;
+  public AbstractSymbol name;
+  public Formals formals;
+  public AbstractSymbol return_type;
   protected Expression expr;
   /** Creates "method" AST node. 
    *
@@ -442,8 +450,8 @@ class method extends Feature {
   <p>
   See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class attr extends Feature {
-  protected AbstractSymbol name;
-  protected AbstractSymbol type_decl;
+  public AbstractSymbol name;
+  public AbstractSymbol type_decl;
   protected Expression init;
   /** Creates "attr" AST node. 
    *
@@ -1641,8 +1649,9 @@ class isvoid extends Expression {
       dump_line(System.err, 0);
     }
 
-    this.set_type(TreeConstants.Bool);
+    e1.checkType(f, o, m, c);
     // TODO check
+    this.set_type(TreeConstants.Bool);
   }
   public TreeNode copy() {
     return new isvoid(lineNumber, (Expression)e1.copy());
@@ -1723,7 +1732,7 @@ class object extends Expression {
     if (s == null) {
       m.semantError(f, this, "undefined symbol " + name.getString());
     }
-    this.set_type(TreeConstants.Object_);
+    this.set_type(s);
   }
   public TreeNode copy() {
     return new object(lineNumber, copy_AbstractSymbol(name));

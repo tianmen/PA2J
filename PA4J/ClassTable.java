@@ -179,9 +179,9 @@ class ClassTable {
     /* Do somethind with Object_class, IO_class, Int_class,
        Bool_class, and Str_class here */
     inheritanceTable.put(IO_class.getName().getString(), Object_class.getName());
-    inheritanceTable.put(IO_class.getName().getString(), Object_class.getName());
-    inheritanceTable.put(IO_class.getName().getString(), Object_class.getName());
-    inheritanceTable.put(IO_class.getName().getString(), Object_class.getName());
+    inheritanceTable.put(Int_class.getName().getString(), Object_class.getName());
+    inheritanceTable.put(Bool_class.getName().getString(), Object_class.getName());
+    inheritanceTable.put(Str_class.getName().getString(), Object_class.getName());
 
   }
 
@@ -325,6 +325,7 @@ class ClassTable {
       } else if (p.equals(parent)) {
         return true;
       }
+      System.out.println(p.getString());
       c = p;
     }
   }
