@@ -418,7 +418,11 @@ class method extends Feature {
     expr.checkType(f, o, m, c);
     if (!m.classIsSubclassOf(expr.get_type(), t0)) {
       //expr.dump_with_types(m.semantError(), 0);
-      m.semantError(f, this, "method type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
+      try {
+        m.semantError(f, this, "method type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
+      } catch (Exception e) {
+        m.semantError(f, this, "method type error: " + t0.getString());
+      }
     }
     o.exitScope();
   }
@@ -1069,6 +1073,8 @@ class plus extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    e1.checkType(f, o, m, c);
+    e2.checkType(f, o, m, c);
 
     this.set_type(TreeConstants.Int);
     // TODO checkType
@@ -1116,6 +1122,9 @@ class sub extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    e1.checkType(f, o, m, c);
+    e2.checkType(f, o, m, c);
+
 
     this.set_type(TreeConstants.Int);
     // TODO checkType
@@ -1163,6 +1172,9 @@ class mul extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    e1.checkType(f, o, m, c);
+    e2.checkType(f, o, m, c);
+
 
     this.set_type(TreeConstants.Int);
     // TODO checkType
@@ -1210,6 +1222,9 @@ class divide extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    e1.checkType(f, o, m, c);
+    e2.checkType(f, o, m, c);
+
 
     this.set_type(TreeConstants.Int);
     // TODO checkType
@@ -1255,6 +1270,8 @@ class neg extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    e1.checkType(f, o, m, c);
+
 
     this.set_type(TreeConstants.Int);
     // TODO checkType
@@ -1300,7 +1317,8 @@ class lt extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
-
+    e1.checkType(f, o, m, c);
+    e2.checkType(f, o, m, c);
     this.set_type(TreeConstants.Bool);
     // TODO checkType
   }
@@ -1347,7 +1365,9 @@ class eq extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
-
+    e1.checkType(f, o, m, c);
+    e2.checkType(f, o, m, c);
+ 
     this.set_type(TreeConstants.Bool);
     // TODO checkType
   }
@@ -1394,7 +1414,9 @@ class leq extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
-
+    e1.checkType(f, o, m, c);
+    e2.checkType(f, o, m, c);
+ 
     this.set_type(TreeConstants.Bool);
     // TODO checkType
   }
@@ -1438,7 +1460,8 @@ class comp extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
-
+    e1.checkType(f, o, m, c);
+ 
     this.set_type(TreeConstants.Bool);
     // TODO checkType
   }
