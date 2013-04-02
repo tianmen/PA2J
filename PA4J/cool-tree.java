@@ -409,8 +409,8 @@ class method extends Feature {
     }
     expr.checkType(f, o, m, c);
     if (!m.classIsSubclassOf(expr.get_type(), t0)) {
-      expr.dump_with_types(m.semantError(), 0);
-      //m.semantError(f, this, "method type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
+      //expr.dump_with_types(m.semantError(), 0);
+      m.semantError(f, this, "method type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
     }
     o.exitScope();
   }
