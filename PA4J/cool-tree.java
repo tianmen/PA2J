@@ -532,6 +532,9 @@ class formalc extends Formal {
   }
 
   public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
+    if (o.probe(name) != null) {
+      m.semantError(f, this, "duplicate formal " + name);
+    }
     o.addId(name, type_decl);
   }
   public TreeNode copy() {
