@@ -1395,7 +1395,18 @@ class eq extends Expression {
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
 
- 
+    AbstractSymbol e1t = e1.get_type();
+    AbstractSymbol e2t = e2.get_type();
+
+
+    if (e1t.equals(TreeConstants.Int) ||
+        e1t.equals(TreeConstants.Bool) ||
+        e1t.equals(TreeConstants.Str)) {
+      if (!e1t.equals(e2t)) {
+        m.semantError(f, this, "bad equal");
+      }
+    }
+
     this.set_type(TreeConstants.Bool);
     // TODO checkType
   }
