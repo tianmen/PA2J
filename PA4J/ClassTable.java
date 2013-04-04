@@ -120,7 +120,7 @@ class ClassTable {
           filename);
 
     // Bool also has only the "val" slot.
-    class_c Bool_class = 
+    Bool_class = 
       new class_c(0,
           TreeConstants.Bool,
           TreeConstants.Object_,
@@ -202,11 +202,17 @@ class ClassTable {
     HashSet<String> s = new HashSet<String>();
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
-      inheritanceTable.put(c.getName().getString(), c.getParent());
+      AbstractSymbol parent = c.getParent();
+      if(parent.equals(Bool_class.getName()) ||
+         parent.equals(Str_class.getName()) ||
+         parent.equals(Int_class.getName())) {
+        semantError(c).println("class " + c.getName().getString() + " can't inherit " + c.getParent().getString());
+      }
+      inheritanceTable.put(c.getName().getString(), parent);
       classNameTable.put(c.getName().getString(), c);
       boolean existed = !s.add(c.getName().getString());
       if (existed) {
-        semantError(c).println("redefined " + c.getName().getString());
+        semantError(c).println("class redefined " + c.getName().getString());
         return;
       }
     }
