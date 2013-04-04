@@ -626,6 +626,7 @@ class assign extends Expression {
       t = m.attrType(c.getName(), name);
       if (t == null) {
         m.semantError(f, this, "can't find symbol " + name + " to assign to");
+        t = TreeConstants.Object_;
       }
     }
     expr.checkType(f, o, m, c);
@@ -696,6 +697,7 @@ class static_dispatch extends Expression {
     AbstractSymbol return_type = m.returnType(type_name, name, actualTypes, c);
     if (return_type == null) {
       m.semantError(f, this, "can not find method " + name.getString() + " in class " + c.getName().getString());
+      return_type = TreeConstants.Object_;
     }
     if (return_type.equals(TreeConstants.SELF_TYPE)) {
       return_type = expr.get_type();
@@ -767,6 +769,7 @@ class dispatch extends Expression {
     AbstractSymbol return_type = m.returnType(expr.get_type(), name, actualTypes, c);
     if (return_type == null) {
       m.semantError(f, this, "can not find method " + name.getString() + " in class " + c.getName().getString());
+      return_type = TreeConstants.Object_;
     }
     if (return_type.equals(TreeConstants.SELF_TYPE)) {
       return_type = expr.get_type();
