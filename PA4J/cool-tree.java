@@ -1068,6 +1068,9 @@ class let extends Expression {
     }
     init.checkType(f, o, m, c);
     body.checkType(f, o, m, c);
+    if (!init.get_type().equals(TreeConstants.No_type)) {
+      assertType(init.get_type(), type_decl, f, m, c);
+    }
     this.set_type(body.get_type());
     o.exitScope();
   }
