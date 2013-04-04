@@ -1029,12 +1029,8 @@ class let extends Expression {
     AbstractSymbol t0p = type_decl;
     if (t0p.equals(TreeConstants.SELF_TYPE)) {
       t0p = c.getName();
-
     }
     init.checkType(f, o, m, c);
-    if (!m.classIsSubclassOf(init.get_type(), type_decl, c)) {
-      m.semantError(f, this, "bad let");
-    }
     body.checkType(f, o, m, c);
     this.set_type(body.get_type());
     o.exitScope();
