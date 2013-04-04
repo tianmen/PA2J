@@ -331,14 +331,6 @@ class class_c extends Class_ {
     }
     o.enterScope();
     o.addId(TreeConstants.self, TreeConstants.SELF_TYPE);
-    // get all attr info
-    for (Enumeration e = features.getElements(); e.hasMoreElements();) {
-      Feature fe = ((Feature)e.nextElement());
-      if (fe instanceof attr) {
-        attr a = (attr)fe;
-        o.addId(a.name, a.type_decl);
-      }
-    }
     for (Enumeration e = features.getElements(); e.hasMoreElements();) {
       Feature fe = ((Feature)e.nextElement());
       fe.checkType(filename, o, m, c);
@@ -1753,7 +1745,11 @@ class object extends Expression {
 
     AbstractSymbol s = (AbstractSymbol)o.lookup(name);
     if (s == null) {
-      m.semantError(f, this, "undefined symbol " + name.getString());
+      s = m.attrType(c.getName(), name);
+      if (s == null) {
+        m.semantError(f, this, "undefined symbol " + name.getString());
+        s = TreeConstants.Object_;
+      }
     }
     this.set_type(s);
   }

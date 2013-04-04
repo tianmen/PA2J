@@ -336,7 +336,7 @@ class ClassTable {
     }
   }
 
-  public AbstractSymbol attrTypr(AbstractSymbol class_, AbstractSymbol attrName) {
+  public AbstractSymbol attrType(AbstractSymbol class_, AbstractSymbol attrName) {
     AbstractSymbol c = class_;
     while (true) {
       class_c c_c = classNameTable.get(c.getString());
@@ -346,8 +346,9 @@ class ClassTable {
       }
       Features features = c_c.features;
       for (Enumeration e = features.getElements(); e.hasMoreElements();) {
-        if (e instanceof attr) {
-          attr a = (attr)e;
+        Feature f = (Feature)e.nextElement();
+        if (f instanceof attr) {
+          attr a = (attr)f;
           if (a.name.equals(attrName)) {
             return a.type_decl;
           }
