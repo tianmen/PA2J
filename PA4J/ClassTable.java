@@ -197,8 +197,9 @@ class ClassTable {
     semantErrors = 0;
     errorStream = System.err;
 
-    /* fill this in */
     installBasicClasses();
+    
+    // add inheritance info
     HashSet<String> s = new HashSet<String>();
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
@@ -216,6 +217,21 @@ class ClassTable {
         return;
       }
     }
+
+    s.add(IO_class.getName().getString());
+    s.add(Int_class.getName().getString());
+    s.add(Str_class.getName().getString());
+    s.add(Object_class.getName().getString());
+
+    // check parent existed
+    for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
+      class_c c = (class_c)e.nextElement();
+      boolean existed = !s.add(c.getParent().getString());
+      if (!existed) {
+        semantError(c).println("class not found " + c.getParent().getString());
+      }
+    }
+
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c cc = (class_c)e.nextElement();
       AbstractSymbol c = cc.getName();
