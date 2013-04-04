@@ -12,6 +12,7 @@ class ClassTable {
   private PrintStream errorStream;
 
   private Hashtable<String, AbstractSymbol> inheritanceTable = new Hashtable<String, AbstractSymbol>();
+  private Hashtable<String, class_c> classNameTable = new Hashtable<String, class_c>();
 
   private class_c Object_class;
   private class_c IO_class;
@@ -178,10 +179,15 @@ class ClassTable {
 
     /* Do somethind with Object_class, IO_class, Int_class,
        Bool_class, and Str_class here */
+    classNameTable.put(Object_class.getName().getString(), Object_class);
     inheritanceTable.put(IO_class.getName().getString(), Object_class.getName());
+    classNameTable.put(IO_class.getName().getString(), IO_class);
     inheritanceTable.put(Int_class.getName().getString(), Object_class.getName());
+    classNameTable.put(Int_class.getName().getString(), Int_class);
     inheritanceTable.put(Bool_class.getName().getString(), Object_class.getName());
+    classNameTable.put(Bool_class.getName().getString(), Int_class);
     inheritanceTable.put(Str_class.getName().getString(), Object_class.getName());
+    classNameTable.put(Str_class.getName().getString(), Str_class);
 
   }
 
@@ -197,6 +203,7 @@ class ClassTable {
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
       inheritanceTable.put(c.getName().getString(), c.getParent());
+      classNameTable.put(c.getName().getString(), c);
       boolean existed = !s.add(c.getName().getString());
       if (existed) {
         semantError(c).println("redefined " + c.getName().getString());
@@ -325,13 +332,75 @@ class ClassTable {
       } else if (p.equals(parent)) {
         return true;
       }
-      System.out.println(p.getString());
       c = p;
     }
   }
 
-  public AbstractSymbol returnType(AbstractSymbol class_, ArrayList<AbstractSymbol> actualTypes) {
-    // TODO
+  public AbstractSymbol attrTypr(AbstractSymbol class_, AbstractSymbol attrName) {
+    AbstractSymbol c = class_;
+    while (true) {
+      class_c c_c = classNameTable.get(c.getString());
+      if (c_c == null) {
+        semantError().println("can not find class " + c.getString());
+        return null;
+      }
+      Features features = c_c.features;
+      for (Enumeration e = features.getElements(); e.hasMoreElements();) {
+        if (e instanceof attr) {
+          attr a = (attr)e;
+          if (a.name.equals(attrName)) {
+            return a.type_decl;
+          }
+        }
+      }
+      AbstractSymbol p = inheritanceTable.get(c.getString());
+      if (p == null) {
+        break;
+      }
+      c = p;
+    }
+    return null;
+  }
+
+  public AbstractSymbol returnType(AbstractSymbol class_, AbstractSymbol methodName, ArrayList<AbstractSymbol> actualTypes) {
+    AbstractSymbol c = class_;
+    while (true) {
+      class_c c_c = classNameTable.get(c.getString());
+      if (c_c == null) {
+        semantError().println("can not find class " + c.getString());
+        return null;
+      }
+      Features features = c_c.features;
+      for (Enumeration e = features.getElements(); e.hasMoreElements();) {
+        Feature f = (Feature)e.nextElement();
+        if (f instanceof method) {
+          method m = (method)f;
+          if (m.name.equals(methodName)) {
+            int i = 0;
+            boolean wrong = false;
+            for (Enumeration e1 = m.formals.getElements(); e1.hasMoreElements();) {
+              formalc fe = ((formalc)e1.nextElement());
+              if (this.classIsSubclassOf(actualTypes.get(i), fe.type_decl)) {
+                wrong = true;
+                break;
+              }
+              i++;
+            }
+            if (wrong) {
+              continue;
+            } else {
+              return m.return_type;
+            }
+          }
+        }
+
+      }
+      AbstractSymbol p = inheritanceTable.get(c.getString());
+      if (p == null) {
+        break;
+      }
+      c = p;
+    }
     return TreeConstants.Object_;
   }
 }

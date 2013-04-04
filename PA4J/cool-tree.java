@@ -307,7 +307,7 @@ class programc extends Program {
 class class_c extends Class_ {
   protected AbstractSymbol name;
   protected AbstractSymbol parent;
-  protected Features features;
+  public Features features;
   protected AbstractSymbol filename;
   /** Creates "class_c" AST node. 
    *
@@ -509,8 +509,8 @@ class attr extends Feature {
   <p>
   See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class formalc extends Formal {
-  protected AbstractSymbol name;
-  protected AbstractSymbol type_decl;
+  public AbstractSymbol name;
+  public AbstractSymbol type_decl;
   /** Creates "formalc" AST node. 
    *
    * @param lineNumber the line in the source file from which this node came.
@@ -684,7 +684,7 @@ class static_dispatch extends Expression {
     }
     // TODO SELF_TYPE
     // TODO check e0 <= type_name
-    this.set_type(m.returnType(type_name, actualTypes));
+    this.set_type(m.returnType(type_name, name, actualTypes));
   }
   public TreeNode copy() {
     return new static_dispatch(lineNumber, (Expression)expr.copy(), copy_AbstractSymbol(type_name), copy_AbstractSymbol(name), (Expressions)actual.copy());
@@ -748,7 +748,7 @@ class dispatch extends Expression {
       actualTypes.add(ex.get_type());
     }
     // TODO SELF_TYPE
-    this.set_type(m.returnType(expr.get_type(), actualTypes));
+    this.set_type(m.returnType(expr.get_type(), name, actualTypes));
 
   }
   public TreeNode copy() {
