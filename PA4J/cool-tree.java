@@ -189,6 +189,7 @@ abstract class Case extends TreeNode {
   protected Case(int lineNumber) {
     super(lineNumber);
   }
+  public abstract void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c);
   public abstract void dump_with_types(PrintStream out, int n);
 
 }
@@ -544,7 +545,7 @@ class formalc extends Formal {
 class branch extends Case {
   protected AbstractSymbol name;
   protected AbstractSymbol type_decl;
-  protected Expression expr;
+  public Expression expr;
   /** Creates "branch" AST node. 
    *
    * @param lineNumber the line in the source file from which this node came.
@@ -909,9 +910,14 @@ class typcase extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
-    // TODO replace with correct type
-    this.set_type(TreeConstants.Object_);
-    // TODO checkType
+    expr.checkType(f, o, m, c);
+    ArrayList<AbstractSymbol> types = new ArrayList<AbstractSymbol>();
+    for (Enumeration e = cases.getElements(); e.hasMoreElements();) {
+      branch ca = ((branch)e.nextElement());
+      ca.checkType(f, o, m, c);
+      types.add(ca.expr.get_type());
+    }
+    this.set_type(m.join(types));
   }
   public TreeNode copy() {
     return new typcase(lineNumber, (Expression)expr.copy(), (Cases)cases.copy());

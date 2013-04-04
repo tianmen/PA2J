@@ -317,6 +317,15 @@ class ClassTable {
     return result;
   }
 
+  public AbstractSymbol join(ArrayList<AbstractSymbol> classes) {
+    // TODO: this is very slow, replace this algorithm with a fast one
+    AbstractSymbol result = classes.get(0);
+    for (int i = 1; i < classes.size(); i++) {
+      result = join(result, classes.get(i));
+    }
+    return result;
+  }
+
   public boolean classIsSubclassOf(AbstractSymbol child, AbstractSymbol parent, class_c currentInClass) {
     if (child == null || parent == null) {
       return false;
