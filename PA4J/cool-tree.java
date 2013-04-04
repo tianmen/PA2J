@@ -674,9 +674,14 @@ class static_dispatch extends Expression {
       ex.checkType(f, o, m, c);
       actualTypes.add(ex.get_type());
     }
-    // TODO SELF_TYPE
+    // SELF_TYPE
+    AbstractSymbol return_type = m.returnType(type_name, name, actualTypes);
+    if (return_type.equals(TreeConstants.SELF_TYPE)) {
+      return_type = expr.get_type();
+    }
+
     // TODO check e0 <= type_name
-    this.set_type(m.returnType(type_name, name, actualTypes));
+    this.set_type(return_type);
   }
   public TreeNode copy() {
     return new static_dispatch(lineNumber, (Expression)expr.copy(), copy_AbstractSymbol(type_name), copy_AbstractSymbol(name), (Expressions)actual.copy());
@@ -739,8 +744,12 @@ class dispatch extends Expression {
       ex.checkType(f, o, m, c);
       actualTypes.add(ex.get_type());
     }
-    // TODO SELF_TYPE
-    this.set_type(m.returnType(expr.get_type(), name, actualTypes));
+    // SELF_TYPE
+    AbstractSymbol return_type = m.returnType(expr.get_type(), name, actualTypes);
+    if (return_type.equals(TreeConstants.SELF_TYPE)) {
+      return_type = expr.get_type();
+    }
+    this.set_type(return_type);
 
   }
   public TreeNode copy() {
