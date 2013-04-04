@@ -154,6 +154,12 @@ abstract class Expression extends TreeNode {
     { out.println(Utilities.pad(n) + ": _no_type"); }
   }
   public abstract void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c);
+
+  public void assertType(AbstractSymbol child, AbstractSymbol parent, AbstractSymbol f, ClassTable m, class_c c) {
+    if (!m.classIsSubclassOf(child, parent, c)) {
+      m.semantError(f, this, child.getString() + " is not subtype of " + parent.getString());
+    }
+  }
 }
 
 
@@ -281,7 +287,6 @@ class programc extends Program {
 
     checkType(null, o, classTable, null);
 
-    // TODO uncomment this
     if (classTable.errors()) {
       System.err.println("Compilation halted due to static semantic errors.");
       System.exit(1);
@@ -473,8 +478,10 @@ class attr extends Feature {
     if (name.equals(TreeConstants.self)) {
       m.semantError(f, this, "attr name can't be self");
     }
+    if ((!init.get_type().equals(TreeConstants.No_type)) && !m.classIsSubclassOf(init.get_type(), type_decl, c)) {
+      m.semantError(f, this, init.get_type().getString() + " is not subtype of " + type_decl + " in " + c.getName().getString() + "." + name.getString());
+    }
     o.exitScope();
-    // TODO check
   }
   public TreeNode copy() {
     return new attr(lineNumber, copy_AbstractSymbol(name), copy_AbstractSymbol(type_decl), (Expression)init.copy());
@@ -568,8 +575,6 @@ class branch extends Case {
     o.enterScope();
     o.addId(name, type_decl);
     expr.checkType(f, o, m, c);
-    // TODO check
-    // this.set_type(type_decl);
     o.exitScope();
   }
   public TreeNode copy() {
@@ -669,6 +674,10 @@ class static_dispatch extends Expression {
       dump_line(System.err, 0);
     }
     expr.checkType(f, o, m, c);
+
+    if (!m.classIsSubclassOf(expr.get_type(), type_name, c)) {
+      m.semantError(f, this, "bad static dispatch: " + expr.get_type().getString() + " is not subtype of " + type_name.getString());
+    }
     ArrayList<AbstractSymbol> actualTypes = new ArrayList<AbstractSymbol>();
     for (Enumeration e = actual.getElements(); e.hasMoreElements();) {
       Expression ex = ((Expression)e.nextElement());
@@ -683,8 +692,6 @@ class static_dispatch extends Expression {
     if (return_type.equals(TreeConstants.SELF_TYPE)) {
       return_type = expr.get_type();
     }
-
-    // TODO check e0 <= type_name
     this.set_type(return_type);
   }
   public TreeNode copy() {
@@ -864,8 +871,11 @@ class loop extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    pred.checkType(f, o, m, c);
+    if (!m.classIsSubclassOf(pred.get_type(), TreeConstants.Bool, c)) {
+      m.semantError(f, this, "bad loop pred: " + pred.get_type().getString() + " is not subtype of Bool");
+    }
     this.set_type(TreeConstants.Object_);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new loop(lineNumber, (Expression)pred.copy(), (Expression)body.copy());
@@ -970,7 +980,7 @@ class block extends Expression {
     if (ex != null) {
       this.set_type(ex.get_type());
     } else {
-      // TODO what now?
+      this.set_type(TreeConstants.No_type);
     }
     o.exitScope();
   }
@@ -1085,8 +1095,10 @@ class plus extends Expression {
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
 
+    assertType(e1.get_type(), TreeConstants.Int, f, m, c);
+    assertType(e2.get_type(), TreeConstants.Int, f, m, c);
+
     this.set_type(TreeConstants.Int);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new plus(lineNumber, (Expression)e1.copy(), (Expression)e2.copy());
@@ -1134,9 +1146,10 @@ class sub extends Expression {
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
 
+    assertType(e1.get_type(), TreeConstants.Int, f, m, c);
+    assertType(e2.get_type(), TreeConstants.Int, f, m, c);
 
     this.set_type(TreeConstants.Int);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new sub(lineNumber, (Expression)e1.copy(), (Expression)e2.copy());
@@ -1184,9 +1197,10 @@ class mul extends Expression {
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
 
+    assertType(e1.get_type(), TreeConstants.Int, f, m, c);
+    assertType(e2.get_type(), TreeConstants.Int, f, m, c);
 
     this.set_type(TreeConstants.Int);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new mul(lineNumber, (Expression)e1.copy(), (Expression)e2.copy());
@@ -1234,9 +1248,10 @@ class divide extends Expression {
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
 
+    assertType(e1.get_type(), TreeConstants.Int, f, m, c);
+    assertType(e2.get_type(), TreeConstants.Int, f, m, c);
 
     this.set_type(TreeConstants.Int);
-    // TODO checkType
   }
 
   public TreeNode copy() {
@@ -1281,9 +1296,9 @@ class neg extends Expression {
     }
     e1.checkType(f, o, m, c);
 
+    assertType(e1.get_type(), TreeConstants.Int, f, m, c);
 
     this.set_type(TreeConstants.Int);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new neg(lineNumber, (Expression)e1.copy());
@@ -1328,8 +1343,11 @@ class lt extends Expression {
     }
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
+
+    assertType(e1.get_type(), TreeConstants.Int, f, m, c);
+    assertType(e2.get_type(), TreeConstants.Int, f, m, c);
+
     this.set_type(TreeConstants.Bool);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new lt(lineNumber, (Expression)e1.copy(), (Expression)e2.copy());
@@ -1376,6 +1394,7 @@ class eq extends Expression {
     }
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
+
  
     this.set_type(TreeConstants.Bool);
     // TODO checkType
@@ -1426,8 +1445,10 @@ class leq extends Expression {
     e1.checkType(f, o, m, c);
     e2.checkType(f, o, m, c);
  
+    assertType(e1.get_type(), TreeConstants.Int, f, m, c);
+    assertType(e2.get_type(), TreeConstants.Int, f, m, c);
+
     this.set_type(TreeConstants.Bool);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new leq(lineNumber, (Expression)e1.copy(), (Expression)e2.copy());
@@ -1470,9 +1491,11 @@ class comp extends Expression {
       dump_line(System.err, 0);
     }
     e1.checkType(f, o, m, c);
+
+    // TODO checkType
+    // Why does comp only have an e1?
  
     this.set_type(TreeConstants.Bool);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new comp(lineNumber, (Expression)e1.copy());
@@ -1682,7 +1705,6 @@ class isvoid extends Expression {
     }
 
     e1.checkType(f, o, m, c);
-    // TODO check
     this.set_type(TreeConstants.Bool);
   }
   public TreeNode copy() {
