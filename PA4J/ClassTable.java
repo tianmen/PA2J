@@ -311,7 +311,16 @@ class ClassTable {
     return semantErrors != 0;
   }
 
-  public AbstractSymbol join(AbstractSymbol first, AbstractSymbol second) {
+  public AbstractSymbol join(AbstractSymbol first, AbstractSymbol second, class_c currentInClass) {
+    if (first.equals(TreeConstants.SELF_TYPE)) {
+      first = currentInClass.getName();
+    }
+    if (second.equals(TreeConstants.SELF_TYPE)) {
+      second = currentInClass.getName();
+    }
+    if (first.equals(second)) {
+      return first;
+    }
     ArrayList<AbstractSymbol> fp = new ArrayList<AbstractSymbol>();
     ArrayList<AbstractSymbol> sp = new ArrayList<AbstractSymbol>();
     AbstractSymbol c = first;
@@ -348,11 +357,11 @@ class ClassTable {
     return result;
   }
 
-  public AbstractSymbol join(ArrayList<AbstractSymbol> classes) {
+  public AbstractSymbol join(ArrayList<AbstractSymbol> classes, class_c currentInClass) {
     // TODO: this is very slow, replace this algorithm with a fast one
     AbstractSymbol result = classes.get(0);
     for (int i = 1; i < classes.size(); i++) {
-      result = join(result, classes.get(i));
+      result = join(result, classes.get(i), currentInClass);
     }
     return result;
   }

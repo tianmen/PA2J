@@ -419,6 +419,9 @@ class method extends Feature {
       try {
         m.semantError(f, this, "method " + c.getName().getString() + "." + name.getString() +  " return type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
       } catch (Exception e) {
+        m.semantError().println(c);
+        m.semantError().println(name);
+        m.semantError().println(t0);
         m.semantError(f, this, "method return type error: " + t0.getString());
       }
     }
@@ -838,7 +841,7 @@ class cond extends Expression {
     }
     then_exp.checkType(f, o, m, c);
     else_exp.checkType(f, o, m, c);
-    this.set_type(m.join(then_exp.get_type(), else_exp.get_type()));
+    this.set_type(m.join(then_exp.get_type(), else_exp.get_type(), c));
   }
   public TreeNode copy() {
     return new cond(lineNumber, (Expression)pred.copy(), (Expression)then_exp.copy(), (Expression)else_exp.copy());
@@ -942,7 +945,7 @@ class typcase extends Expression {
       ca.checkType(f, o, m, c);
       types.add(ca.expr.get_type());
     }
-    this.set_type(m.join(types));
+    this.set_type(m.join(types, c));
   }
   public TreeNode copy() {
     return new typcase(lineNumber, (Expression)expr.copy(), (Cases)cases.copy());
