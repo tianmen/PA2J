@@ -621,7 +621,15 @@ class assign extends Expression {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    AbstractSymbol t = (AbstractSymbol)o.lookup(name);
+    if (t == null) {
+      t = m.attrType(c.getName(), name);
+      if (t == null) {
+        m.semantError(f, this, "can't find symbol " + name + " to assign to");
+      }
+    }
     expr.checkType(f, o, m, c);
+    assertType(expr.get_type(), t, f, m, c);
     this.set_type(expr.get_type());
   }
   public TreeNode copy() {
