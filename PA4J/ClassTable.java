@@ -201,6 +201,12 @@ class ClassTable {
     
     // add inheritance info
     HashSet<String> s = new HashSet<String>();
+
+    s.add(IO_class.getName().getString());
+    s.add(Int_class.getName().getString());
+    s.add(Str_class.getName().getString());
+    s.add(Object_class.getName().getString());
+
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
       AbstractSymbol parent = c.getParent();
@@ -217,11 +223,6 @@ class ClassTable {
         return;
       }
     }
-
-    s.add(IO_class.getName().getString());
-    s.add(Int_class.getName().getString());
-    s.add(Str_class.getName().getString());
-    s.add(Object_class.getName().getString());
 
     // check parent existed
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
