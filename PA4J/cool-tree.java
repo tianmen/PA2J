@@ -422,7 +422,7 @@ class method extends Feature {
         m.semantError(f, this, "method return type error: " + t0.getString());
       }
     }
-    if (m.lookupClass(return_type) == null) {
+    if (m.lookupClass(t0) == null) {
         m.semantError(f, this, "method return type error: " + name.getString() + " return type not found: " + return_type.getString());
     }
     o.exitScope();
