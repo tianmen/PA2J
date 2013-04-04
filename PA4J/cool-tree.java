@@ -1408,7 +1408,6 @@ class eq extends Expression {
     }
 
     this.set_type(TreeConstants.Bool);
-    // TODO checkType
   }
   public TreeNode copy() {
     return new eq(lineNumber, (Expression)e1.copy(), (Expression)e2.copy());
