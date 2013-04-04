@@ -405,6 +405,26 @@ class method extends Feature {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+
+    // check method overriding
+    class_c parent = m.lookupParent(c.getName());
+    Formals formalsOfParent = m.methodFormals(parent.getName(), name);
+    if (formalsOfParent != null) {
+      if (formals.getLength() != formalsOfParent.getLength()) {
+        m.semantError(f, this, "method overriding parent class's mathod with different number of formals:" + name);
+      } else {
+        int i = 0;
+        for (Enumeration e = formals.getElements(); e.hasMoreElements();) {
+          formalc fe = (formalc)e.nextElement();
+          formalc fp = (formalc)formalsOfParent.getNth(i);
+          if (!fe.type_decl.equals(fp.type_decl)) {
+            m.semantError(f, this, "method overriding parent class's mathod with different type of formal:" + name);
+          }
+          i++;
+        }
+      }
+    }
+
     o.enterScope();
     for (Enumeration e = formals.getElements(); e.hasMoreElements();) {
       Formal fe = ((Formal)e.nextElement());
@@ -482,6 +502,8 @@ class attr extends Feature {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+
+    // check attr overriding
     class_c parent = m.lookupParent(c.getName());
     AbstractSymbol attrTypeOfParent = m.attrType(parent.getName(), name);
     if (attrTypeOfParent != null) {

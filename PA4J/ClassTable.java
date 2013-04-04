@@ -432,6 +432,33 @@ class ClassTable {
     return null;
   }
 
+  public Formals methodFormals(AbstractSymbol class_, AbstractSymbol methodName) {
+    AbstractSymbol c = class_;
+    while (true) {
+      class_c c_c = classNameTable.get(c.getString());
+      if (c_c == null) {
+        semantError().println("can not find class " + c.getString());
+        return null;
+      }
+      Features features = c_c.features;
+      for (Enumeration e = features.getElements(); e.hasMoreElements();) {
+        Feature f = (Feature)e.nextElement();
+        if (f instanceof method) {
+          method m = (method)f;
+          if (m.name.equals(methodName)) {
+            return m.formals;
+          }
+        }
+      }
+      AbstractSymbol p = inheritanceTable.get(c.getString());
+      if (p == null) {
+        break;
+      }
+      c = p;
+    }
+    return null;
+  }
+
   public AbstractSymbol returnType(AbstractSymbol class_, AbstractSymbol methodName, ArrayList<AbstractSymbol> actualTypes, class_c currentInClass) {
     if (class_.equals(TreeConstants.SELF_TYPE)) {
       class_ = currentInClass.getName();
