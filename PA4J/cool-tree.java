@@ -410,9 +410,10 @@ class method extends Feature {
       fe.checkType(f, o, m, c);
     }
     AbstractSymbol t0 = return_type;
-    if (t0.equals(TreeConstants.SELF_TYPE)) {
-      t0 = c.getName();
-    }
+
+    //if (t0.equals(TreeConstants.SELF_TYPE)) {
+    //  t0 = c.getName();
+    //}
     expr.checkType(f, o, m, c);
     if (!m.classIsSubclassOf(expr.get_type(), t0, c)) {
       //expr.dump_with_types(m.semantError(), 0);
@@ -425,7 +426,8 @@ class method extends Feature {
         m.semantError(f, this, "method return type error: " + t0.getString());
       }
     }
-    if (m.lookupClass(t0) == null) {
+
+    if (!t0.equals(TreeConstants.SELF_TYPE) && m.lookupClass(t0) == null) {
         m.semantError(f, this, "method return type error: " + name.getString() + " return type not found: " + return_type.getString());
     }
     o.exitScope();
@@ -626,6 +628,9 @@ class assign extends Expression {
     if (Flags.semant_debug) {
       System.err.print("checkType assign ");
       dump_line(System.err, 0);
+    }
+    if (name.equals(TreeConstants.self)) {
+        m.semantError(f, this, "can't assign to self");
     }
     AbstractSymbol t = (AbstractSymbol)o.lookup(name);
     if (t == null) {

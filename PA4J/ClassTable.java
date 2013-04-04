@@ -312,14 +312,15 @@ class ClassTable {
   }
 
   public AbstractSymbol join(AbstractSymbol first, AbstractSymbol second, class_c currentInClass) {
+    // if both are SELF_TYPE, return SELF_TYPE
+    if (first.equals(second)) {
+      return first;
+    }
     if (first.equals(TreeConstants.SELF_TYPE)) {
       first = currentInClass.getName();
     }
     if (second.equals(TreeConstants.SELF_TYPE)) {
       second = currentInClass.getName();
-    }
-    if (first.equals(second)) {
-      return first;
     }
     ArrayList<AbstractSymbol> fp = new ArrayList<AbstractSymbol>();
     ArrayList<AbstractSymbol> sp = new ArrayList<AbstractSymbol>();
@@ -378,9 +379,14 @@ class ClassTable {
     if (child == null || parent == null) {
       return false;
     }
+    // two SELF_TYPE are true
+    if (child.equals(parent)) {
+      return true;
+    }
     if (child.equals(TreeConstants.SELF_TYPE)) {
       child = currentInClass.getName();
     }
+    // yes, check again
     if (child.equals(parent)) {
       return true;
     }
