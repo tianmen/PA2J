@@ -535,6 +535,9 @@ class formalc extends Formal {
     if (o.probe(name) != null) {
       m.semantError(f, this, "duplicate formal " + name);
     }
+    if (type_decl.equals(TreeConstants.SELF_TYPE)) {
+      m.semantError(f, this, "SELF_TYPE can not be formal type: " + name);
+    }
     o.addId(name, type_decl);
   }
   public TreeNode copy() {
