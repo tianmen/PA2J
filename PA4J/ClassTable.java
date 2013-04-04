@@ -200,12 +200,12 @@ class ClassTable {
     installBasicClasses();
     
     // add inheritance info
-    HashSet<String> s = new HashSet<String>();
+    HashSet<String> allClasses = new HashSet<String>();
 
-    s.add(IO_class.getName().getString());
-    s.add(Int_class.getName().getString());
-    s.add(Str_class.getName().getString());
-    s.add(Object_class.getName().getString());
+    allClasses.add(IO_class.getName().getString());
+    allClasses.add(Int_class.getName().getString());
+    allClasses.add(Str_class.getName().getString());
+    allClasses.add(Object_class.getName().getString());
 
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
@@ -217,7 +217,7 @@ class ClassTable {
       }
       inheritanceTable.put(c.getName().getString(), parent);
       classNameTable.put(c.getName().getString(), c);
-      boolean existed = !s.add(c.getName().getString());
+      boolean existed = !allClasses.add(c.getName().getString());
       if (existed) {
         semantError(c).println("class redefined " + c.getName().getString());
         return;
@@ -227,15 +227,23 @@ class ClassTable {
     // check parent existed
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
-      boolean existed = !s.add(c.getParent().getString());
+      boolean existed = !allClasses.add(c.getParent().getString());
       if (!existed) {
         semantError(c).println("class not found " + c.getParent().getString());
       }
     }
 
+    // check Main exists
+    if (!allClasses.contains(TreeConstants.Main.getString())) {
+        semantError().println("Class Main is not defined.");
+    }
+
+    // check every class
+    HashSet<String> s;
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c cc = (class_c)e.nextElement();
       AbstractSymbol c = cc.getName();
+      // check inheritance
       s = new HashSet<String>();
       while (true) {
         AbstractSymbol p = inheritanceTable.get(c.getString());
@@ -347,6 +355,14 @@ class ClassTable {
       result = join(result, classes.get(i));
     }
     return result;
+  }
+
+  public class_c lookupParent(AbstractSymbol name) {
+    return classNameTable.get(inheritanceTable.get(name.getString()).getString());
+  }
+
+  public class_c lookupClass(AbstractSymbol name) {
+    return classNameTable.get(name.getString());
   }
 
   public boolean classIsSubclassOf(AbstractSymbol child, AbstractSymbol parent, class_c currentInClass) {

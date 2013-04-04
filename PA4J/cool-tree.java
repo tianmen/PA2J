@@ -422,6 +422,9 @@ class method extends Feature {
         m.semantError(f, this, "method return type error: " + t0.getString());
       }
     }
+    if (m.lookupClass(return_type) == null) {
+        m.semantError(f, this, "method return type error: " + name.getString() + " return type not found: " + return_type.getString());
+    }
     o.exitScope();
   }
   public TreeNode copy() {
@@ -1051,6 +1054,9 @@ class let extends Expression {
     AbstractSymbol t0p = type_decl;
     if (t0p.equals(TreeConstants.SELF_TYPE)) {
       t0p = c.getName();
+    }
+    if (identifier.equals(TreeConstants.self)) {
+      m.semantError(f, this, "can not assign to self");
     }
     init.checkType(f, o, m, c);
     body.checkType(f, o, m, c);
