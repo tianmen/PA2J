@@ -317,9 +317,12 @@ class ClassTable {
     return result;
   }
 
-  public boolean classIsSubclassOf(AbstractSymbol child, AbstractSymbol parent) {
+  public boolean classIsSubclassOf(AbstractSymbol child, AbstractSymbol parent, class_c currentInClass) {
     if (child == null || parent == null) {
       return false;
+    }
+    if (child.equals(TreeConstants.SELF_TYPE)) {
+      child = currentInClass.getName();
     }
     if (child.equals(parent)) {
       return true;
@@ -363,7 +366,10 @@ class ClassTable {
     return null;
   }
 
-  public AbstractSymbol returnType(AbstractSymbol class_, AbstractSymbol methodName, ArrayList<AbstractSymbol> actualTypes) {
+  public AbstractSymbol returnType(AbstractSymbol class_, AbstractSymbol methodName, ArrayList<AbstractSymbol> actualTypes, class_c currentInClass) {
+    if (class_.equals(TreeConstants.SELF_TYPE)) {
+      class_ = currentInClass.getName();
+    }
     AbstractSymbol c = class_;
     while (true) {
       class_c c_c = classNameTable.get(c.getString());
@@ -381,7 +387,7 @@ class ClassTable {
             boolean wrong = false;
             for (Enumeration e1 = m.formals.getElements(); e1.hasMoreElements();) {
               formalc fe = ((formalc)e1.nextElement());
-              if (this.classIsSubclassOf(actualTypes.get(i), fe.type_decl)) {
+              if (!this.classIsSubclassOf(actualTypes.get(i), fe.type_decl, currentInClass)) {
                 wrong = true;
                 break;
               }
@@ -402,7 +408,7 @@ class ClassTable {
       }
       c = p;
     }
-    return TreeConstants.Object_;
+    return null;
   }
 }
 

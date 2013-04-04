@@ -408,12 +408,12 @@ class method extends Feature {
       t0 = c.getName();
     }
     expr.checkType(f, o, m, c);
-    if (!m.classIsSubclassOf(expr.get_type(), t0)) {
+    if (!m.classIsSubclassOf(expr.get_type(), t0, c)) {
       //expr.dump_with_types(m.semantError(), 0);
       try {
-        m.semantError(f, this, "method type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
+        m.semantError(f, this, "method " + c.getName().getString() + "." + name.getString() +  " return type error: " + expr.get_type().getString() + " is not subtype of " + t0.getString());
       } catch (Exception e) {
-        m.semantError(f, this, "method type error: " + t0.getString());
+        m.semantError(f, this, "method return type error: " + t0.getString());
       }
     }
     o.exitScope();
@@ -675,7 +675,10 @@ class static_dispatch extends Expression {
       actualTypes.add(ex.get_type());
     }
     // SELF_TYPE
-    AbstractSymbol return_type = m.returnType(type_name, name, actualTypes);
+    AbstractSymbol return_type = m.returnType(type_name, name, actualTypes, c);
+    if (return_type == null) {
+      m.semantError(f, this, "can not find method " + name.getString() + " in class " + c.getName().getString());
+    }
     if (return_type.equals(TreeConstants.SELF_TYPE)) {
       return_type = expr.get_type();
     }
@@ -745,7 +748,10 @@ class dispatch extends Expression {
       actualTypes.add(ex.get_type());
     }
     // SELF_TYPE
-    AbstractSymbol return_type = m.returnType(expr.get_type(), name, actualTypes);
+    AbstractSymbol return_type = m.returnType(expr.get_type(), name, actualTypes, c);
+    if (return_type == null) {
+      m.semantError(f, this, "can not find method " + name.getString() + " in class " + c.getName().getString());
+    }
     if (return_type.equals(TreeConstants.SELF_TYPE)) {
       return_type = expr.get_type();
     }
@@ -1020,7 +1026,7 @@ class let extends Expression {
 
     }
     init.checkType(f, o, m, c);
-    if (!m.classIsSubclassOf(init.get_type(), type_decl)) {
+    if (!m.classIsSubclassOf(init.get_type(), type_decl, c)) {
       m.semantError(f, this, "bad let");
     }
     body.checkType(f, o, m, c);
