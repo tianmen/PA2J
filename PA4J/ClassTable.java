@@ -210,10 +210,13 @@ class ClassTable {
     for (Enumeration e = cls.getElements(); e.hasMoreElements(); ) {
       class_c c = (class_c)e.nextElement();
       AbstractSymbol parent = c.getParent();
-      if(parent.equals(Bool_class.getName()) ||
+      if (parent.equals(Bool_class.getName()) ||
          parent.equals(Str_class.getName()) ||
          parent.equals(Int_class.getName())) {
         semantError(c).println("class " + c.getName().getString() + " can't inherit " + c.getParent().getString());
+      }
+      if (c.getName().equals(TreeConstants.SELF_TYPE)) {
+        semantError(c).println("class " + c.getName().getString() + " can't use name SELF_TYPE");
       }
       inheritanceTable.put(c.getName().getString(), parent);
       classNameTable.put(c.getName().getString(), c);

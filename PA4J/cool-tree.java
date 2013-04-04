@@ -9,6 +9,7 @@
 import java.util.Enumeration;
 import java.io.PrintStream;
 import java.util.Vector;
+import java.util.HashSet;
 import java.util.ArrayList;
 
 
@@ -538,6 +539,10 @@ class formalc extends Formal {
     if (type_decl.equals(TreeConstants.SELF_TYPE)) {
       m.semantError(f, this, "SELF_TYPE can not be formal type: " + name);
     }
+    if (name.equals(TreeConstants.self)) {
+      m.semantError(f, this, "self can not be formal param: " + name);
+    }
+
     o.addId(name, type_decl);
   }
   public TreeNode copy() {
@@ -564,8 +569,8 @@ class formalc extends Formal {
   <p>
   See <a href="TreeNode.html">TreeNode</a> for full documentation. */
 class branch extends Case {
-  protected AbstractSymbol name;
-  protected AbstractSymbol type_decl;
+  public AbstractSymbol name;
+  public AbstractSymbol type_decl;
   public Expression expr;
   /** Creates "branch" AST node. 
    *
@@ -951,9 +956,13 @@ class typcase extends Expression {
     }
     expr.checkType(f, o, m, c);
     ArrayList<AbstractSymbol> types = new ArrayList<AbstractSymbol>();
+    HashSet<String> caseTypes = new HashSet<String>();
     for (Enumeration e = cases.getElements(); e.hasMoreElements();) {
       branch ca = ((branch)e.nextElement());
       ca.checkType(f, o, m, c);
+      if (!caseTypes.add(ca.type_decl.getString())) {
+        m.semantError(f, this, "type redefined in case: " + ca.type_decl);
+      }
       types.add(ca.expr.get_type());
     }
     this.set_type(m.join(types, c));
