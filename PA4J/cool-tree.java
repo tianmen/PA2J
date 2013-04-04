@@ -618,7 +618,7 @@ class assign extends Expression {
   }
   public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
     if (Flags.semant_debug) {
-      System.err.print("checkType ");
+      System.err.print("checkType assign ");
       dump_line(System.err, 0);
     }
     AbstractSymbol t = (AbstractSymbol)o.lookup(name);
@@ -679,7 +679,7 @@ class static_dispatch extends Expression {
   }
   public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
     if (Flags.semant_debug) {
-      System.err.print("checkType ");
+      System.err.print("checkType static_dispatch ");
       dump_line(System.err, 0);
     }
     expr.checkType(f, o, m, c);
@@ -755,7 +755,7 @@ class dispatch extends Expression {
   }
   public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
     if (Flags.semant_debug) {
-      System.err.print("checkType ");
+      System.err.print("checkType dispatch ");
       dump_line(System.err, 0);
     }
     expr.checkType(f, o, m, c);
@@ -886,6 +886,7 @@ class loop extends Expression {
     if (!m.classIsSubclassOf(pred.get_type(), TreeConstants.Bool, c)) {
       m.semantError(f, this, "bad loop pred: " + pred.get_type().getString() + " is not subtype of Bool");
     }
+    body.checkType(f, o, m, c);
     this.set_type(TreeConstants.Object_);
   }
   public TreeNode copy() {
@@ -1799,7 +1800,7 @@ class object extends Expression {
   }
   public void checkType(AbstractSymbol f, SymbolTable o, ClassTable m, class_c c) {
     if (Flags.semant_debug) {
-      System.err.print("checkType ");
+      System.err.print("checkType object ");
       dump_line(System.err, 0);
     }
 
