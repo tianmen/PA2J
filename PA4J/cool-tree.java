@@ -482,6 +482,12 @@ class attr extends Feature {
       System.err.print("checkType ");
       dump_line(System.err, 0);
     }
+    class_c parent = m.lookupParent(c.getName());
+    AbstractSymbol attrTypeOfParent = m.attrType(parent.getName(), name);
+    if (attrTypeOfParent != null) {
+      m.semantError(f, this, "attr name overriding parent class's attr");
+    }
+
     o.enterScope();
     init.checkType(f, o, m, c);
     if (name.equals(TreeConstants.self)) {
